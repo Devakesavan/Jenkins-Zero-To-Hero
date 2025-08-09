@@ -1,25 +1,431 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="utf-8">
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"/>
-    <link data-th-href="@{/css/main.css?{id}(id=${timestamp})}" rel="stylesheet">
-    <title>CI/CD Master Class By Abhishek Veeramalla</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${title}"></title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f1419 0%, #161b22 100%);
+            color: #e6edf3;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #238636 0%, #2ea043 100%);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 10px,
+                rgba(255, 255, 255, 0.05) 10px,
+                rgba(255, 255, 255, 0.05) 20px
+            );
+            animation: slide 20s linear infinite;
+        }
+
+        @keyframes slide {
+            0% { transform: translateX(-100px); }
+            100% { transform: translateX(100px); }
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .app-info {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        .info-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px 20px;
+            border-radius: 25px;
+            backdrop-filter: blur(10px);
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .pipeline-section {
+            background: #21262d;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            border: 1px solid #30363d;
+        }
+
+        .section-title {
+            font-size: 1.8em;
+            margin-bottom: 25px;
+            color: #58a6ff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .pipeline-stage {
+            display: flex;
+            align-items: center;
+            background: linear-gradient(135deg, #161b22 0%, #1c2128 100%);
+            margin: 15px 0;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #238636;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pipeline-stage:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 20px rgba(35, 134, 54, 0.3);
+        }
+
+        .stage-icon {
+            font-size: 2em;
+            margin-right: 20px;
+            width: 60px;
+            text-align: center;
+        }
+
+        .stage-content {
+            flex: 1;
+        }
+
+        .stage-name {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stage-description {
+            color: #8b949e;
+            margin-bottom: 10px;
+        }
+
+        .stage-status {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .status-badge {
+            background: #238636;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .duration {
+            color: #58a6ff;
+            font-weight: bold;
+        }
+
+        .metrics-section {
+            background: #21262d;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            border: 1px solid #30363d;
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, #0d1117 0%, #161b22 100%);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+            text-align: center;
+            border: 1px solid #30363d;
+        }
+
+        .metric-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #58a6ff;
+            margin-bottom: 5px;
+        }
+
+        .metric-label {
+            color: #8b949e;
+            font-size: 0.9em;
+        }
+
+        .bottom-sections {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .deployments-section, .environment-section {
+            background: #21262d;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            border: 1px solid #30363d;
+        }
+
+        .deployment-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #161b22;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 3px solid #238636;
+        }
+
+        .env-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px;
+            border-bottom: 1px solid #30363d;
+        }
+
+        .env-item:last-child {
+            border-bottom: none;
+        }
+
+        .env-key {
+            font-weight: bold;
+            color: #ffa657;
+        }
+
+        .env-value {
+            color: #a5d6ff;
+            font-family: 'Courier New', monospace;
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        .rotating {
+            animation: rotate 3s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .bottom-sections {
+                grid-template-columns: 1fr;
+            }
+            
+            .app-info {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+
+        .real-time-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #238636;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 25px;
+            font-size: 0.8em;
+            z-index: 1000;
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            background: #238636;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+            animation: pulse 1.5s infinite;
+        }
+    </style>
 </head>
 <body>
-
-<nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
-    <a class="navbar-brand" href="#">Ultimate CI/CD Pipeline using Java</div></a>
-</nav>
-
-<main role="main" class="container">
-    <div class="starter-template">
-        <h1 th:text="${title}">Default title.</h1>
-        <p th:text="${msg}">Default text.</p>
+    <div class="real-time-indicator">
+        <span class="status-indicator"></span>
+        Live Dashboard
     </div>
-</main>
 
-<script data-th-src="@{/js/main.js}"></script>
+    <div class="container">
+        <header class="header">
+            <div class="header-content">
+                <h1 th:text="${title}">🚀 DevOps CI/CD Pipeline Dashboard</h1>
+                <div class="app-info">
+                    <div class="info-item">
+                        <strong th:text="${appName}">App Name</strong>
+                    </div>
+                    <div class="info-item">
+                        <strong th:text="${version}">Version</strong>
+                    </div>
+                    <div class="info-item">
+                        <strong th:text="${buildNumber}">Build</strong>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-clock"></i> <span th:text="${deploymentTime}">Deploy Time</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="dashboard-grid">
+            <div class="pipeline-section">
+                <h2 class="section-title">
+                    <i class="fas fa-code-branch rotating"></i>
+                    CI/CD Pipeline Status
+                </h2>
+                
+                <div th:each="stage : ${pipelineStages}" class="pipeline-stage">
+                    <div class="stage-icon" th:text="${stage.emoji}"></div>
+                    <div class="stage-content">
+                        <div class="stage-name" th:text="${stage.name}"></div>
+                        <div class="stage-description" th:text="${stage.description}"></div>
+                        <div class="stage-status">
+                            <span class="status-badge" th:text="${stage.status}"></span>
+                            <span class="duration" th:text="${stage.duration}"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="metrics-section">
+                <h2 class="section-title">
+                    <i class="fas fa-chart-line pulse"></i>
+                    System Metrics
+                </h2>
+                
+                <div class="metric-card">
+                    <div class="metric-value" th:text="${metrics.cpu}">23%</div>
+                    <div class="metric-label">CPU Usage</div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-value" th:text="${metrics.memory}">512MB</div>
+                    <div class="metric-label">Memory Usage</div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-value" th:text="${metrics.pods}">3/3</div>
+                    <div class="metric-label">Pods Running</div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-value" th:text="${metrics.uptime}">15d 4h</div>
+                    <div class="metric-label">Uptime</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bottom-sections">
+            <div class="deployments-section">
+                <h2 class="section-title">
+                    <i class="fas fa-rocket"></i>
+                    Recent Deployments
+                </h2>
+                
+                <div th:each="deployment : ${deployments}" class="deployment-item">
+                    <div>
+                        <strong th:text="${deployment.version}">v2.1.0</strong>
+                        <br>
+                        <small th:text="${deployment.environment}">Production</small>
+                    </div>
+                    <div>
+                        <span class="status-badge" th:text="${deployment.status}">SUCCESS</span>
+                        <br>
+                        <small th:text="${deployment.time}">2 minutes ago</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="environment-section">
+                <h2 class="section-title">
+                    <i class="fas fa-server"></i>
+                    Environment Info
+                </h2>
+                
+                <div th:each="env : ${environment}" class="env-item">
+                    <span class="env-key" th:text="${env.key}">Key</span>
+                    <span class="env-value" th:text="${env.value}">Value</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simulate real-time updates
+        setInterval(() => {
+            const indicators = document.querySelectorAll('.status-indicator');
+            indicators.forEach(indicator => {
+                indicator.style.backgroundColor = indicator.style.backgroundColor === 'rgb(35, 134, 54)' ? '#58a6ff' : '#238636';
+            });
+        }, 1000);
+
+        // Add some interactivity
+        document.querySelectorAll('.pipeline-stage').forEach(stage => {
+            stage.addEventListener('click', () => {
+                stage.style.borderLeftColor = stage.style.borderLeftColor === 'rgb(35, 134, 54)' ? '#58a6ff' : '#238636';
+            });
+        });
+    </script>
 </body>
-
 </html>
