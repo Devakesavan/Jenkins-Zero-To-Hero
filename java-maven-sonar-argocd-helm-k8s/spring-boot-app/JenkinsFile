@@ -5,7 +5,6 @@ pipeline {
       args '--user root -v /var/run/docker.sock:/var/run/docker.sock'
     }
   }
-
   stages {
     stage('Install Java 17') {
       steps {
@@ -18,14 +17,12 @@ pipeline {
         '''
       }
     }
-
     stage('Checkout') {
       steps {
         sh 'echo passed'
         // git branch: 'main', url: 'https://github.com/Devakesavan/Jenkins-Zero-To-Hero.git'
       }
     }
-
     stage('Build and Test') {
       steps {
         sh '''
@@ -36,7 +33,6 @@ pipeline {
         '''
       }
     }
-
     stage('Static Code Analysis') {
       environment {
         SONAR_URL = "http://34.203.234.54:9000"
@@ -52,10 +48,9 @@ pipeline {
         }
       }
     }
-
     stage('Build and Push Docker Image') {
       environment {
-        DOCKER_IMAGE = "abhishekf5/ultimate-cicd:${BUILD_NUMBER}"
+        DOCKER_IMAGE = "devakesavan/ultimate-cicd:${BUILD_NUMBER}"
         REGISTRY_CREDENTIALS = credentials('docker-cred')
       }
       steps {
@@ -73,7 +68,6 @@ pipeline {
         }
       }
     }
-
     stage('Update Deployment File') {
       environment {
         GIT_REPO_NAME = "Jenkins-Zero-To-Hero"
