@@ -49,8 +49,8 @@ pipeline {
             // Archive the built JAR files and logs
             archiveArtifacts artifacts: '**/target/*.jar, **/*.log', allowEmptyArchive: true
             
-            // Publish test results if they exist
-            publishTestResults testResultsPattern: '**/target/surefire-reports/*.xml'
+            // Publish test results using junit step
+            junit testResults: '**/target/surefire-reports/*.xml', allowEmptyResults: true
         }
         success {
             echo '🎉 Build succeeded!'
