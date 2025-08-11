@@ -8,26 +8,12 @@ pipeline {
             }
         }
         
-        stage('Install Maven') {
-            steps {
-                sh '''
-                    # Check if maven is already installed
-                    if ! command -v mvn &> /dev/null; then
-                        echo "Installing Maven..."
-                        sudo apt-get update -y
-                        sudo apt-get install maven -y
-                    else
-                        echo "Maven is already installed"
-                    fi
-                    mvn -version
-                '''
-            }
-        }
-        
         stage('Build Project') {
             steps {
                 dir('java-maven-sonar-argocd-helm-k8s/spring-boot-app') {
-                    sh 'mvn clean compile'
+                    // Files are in the src/ directory
+                    sh 'chmod +x src/build.sh'
+                    sh './src/build.sh'
                 }
             }
         }
@@ -35,15 +21,9 @@ pipeline {
         stage('Run Tests') {
             steps {
                 dir('java-maven-sonar-argocd-helm-k8s/spring-boot-app') {
-                    sh 'mvn test'
-                }
-            }
-        }
-        
-        stage('Package Application') {
-            steps {
-                dir('java-maven-sonar-argocd-helm-k8s/spring-boot-app') {
-                    sh 'mvn clean package -DskipTests'
+                    // Files are in the src/ directory
+                    sh 'chmod +x src/test.sh'
+                    sh './src/test.sh'
                 }
             }
         }
@@ -51,7 +31,7 @@ pipeline {
     
     post {
         always {
-            archiveArtifacts artifacts: '**/target/*.jar, **/*.log', allowEmptyArchive: true
+            archiveArtifacts artifacts: '**/*.log, **/target/*.jar', allowEmptyArchive: true
         }
         success {
             echo 'Build succeeded!'
