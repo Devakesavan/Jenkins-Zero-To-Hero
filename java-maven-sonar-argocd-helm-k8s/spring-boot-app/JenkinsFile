@@ -8,15 +8,21 @@ pipeline {
             }
         }
         
+        stage('Verify Project Structure') {
+            steps {
+                dir('java-maven-sonar-argocd-helm-k8s/spring-boot-app') {
+                    sh 'pwd'
+                    sh 'ls -la'
+                    sh 'echo "Checking if pom.xml exists:"'
+                    sh 'ls -la pom.xml'
+                }
+            }
+        }
+        
         stage('Build Project') {
             steps {
                 dir('java-maven-sonar-argocd-helm-k8s/spring-boot-app') {
-                    // Make scripts executable
-                    sh 'chmod +x src/build.sh'
-                    
-                    // Run script from current directory (where pom.xml is)
-                    // but call the script from src/
-                    sh 'bash src/build.sh'
+                    sh 'mvn clean compile'
                 }
             }
         }
@@ -24,11 +30,15 @@ pipeline {
         stage('Run Tests') {
             steps {
                 dir('java-maven-sonar-argocd-helm-k8s/spring-boot-app') {
-                    // Make scripts executable
-                    sh 'chmod +x src/test.sh'
-                    
-                    // Run script from current directory (where pom.xml is)
-                    sh 'bash src/test.sh'
+                    sh 'mvn test'
+                }
+            }
+        }
+        
+        stage('Package Application') {
+            steps {
+                dir('java-maven-sonar-argocd-helm-k8s/spring-boot-app') {
+                    sh 'mvn clean package -DskipTests'
                 }
             }
         }
@@ -36,13 +46,17 @@ pipeline {
     
     post {
         always {
-            archiveArtifacts artifacts: '**/*.log, **/target/*.jar', allowEmptyArchive: true
+            // Archive the built JAR files and logs
+            archiveArtifacts artifacts: '**/target/*.jar, **/*.log', allowEmptyArchive: true
+            
+            // Publish test results if they exist
+            publishTestResults testResultsPattern: '**/target/surefire-reports/*.xml'
         }
         success {
-            echo 'Build succeeded!'
+            echo '🎉 Build succeeded!'
         }
         failure {
-            echo 'Build failed!'
+            echo '❌ Build failed!'
         }
     }
 }
