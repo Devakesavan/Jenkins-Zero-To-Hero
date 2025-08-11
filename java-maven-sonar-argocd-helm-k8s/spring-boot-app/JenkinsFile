@@ -1,41 +1,72 @@
 pipeline {
     agent any
-
+    
+    tools {
+        maven 'Maven-3.9.0' // Make sure this matches your Jenkins Maven configuration
+        jdk 'JDK-17' // Make sure this matches your Jenkins JDK configuration
+    }
+    
     stages {
         stage('Checkout Code') {
             steps {
-                git branch: 'main', credentialsId: 'github-cred', url: 'https://github.com/Devakesavan/Jenkins-Zero-To-Hero.git'
+                git branch: 'main', 
+                    credentialsId: 'github-cred', 
+                    url: 'https://github.com/Devakesavan/Jenkins-Zero-To-Hero.git'
             }
         }
-
+        
         stage('Build Project') {
             steps {
                 dir('java-maven-sonar-argocd-helm-k8s/spring-boot-app') {
-                    sh './build.sh' // Assuming you have a build script named build.sh
+                    // Make scripts executable (if using shell scripts)
+                    sh 'chmod +x build.sh'
+                    sh './build.sh'
+                    
+                    // Alternative: Use Maven directly
+                    // sh 'mvn clean compile'
                 }
             }
         }
-
+        
         stage('Run Tests') {
             steps {
                 dir('java-maven-sonar-argocd-helm-k8s/spring-boot-app') {
-                    sh './test.sh' // Assuming you have a test script named test.sh
+                    // Make scripts executable (if using shell scripts)
+                    sh 'chmod +x test.sh'
+                    sh './test.sh'
+                    
+                    // Alternative: Use Maven directly
+                    // sh 'mvn test'
+                }
+            }
+        }
+        
+        stage('Package Application') {
+            steps {
+                dir('java-maven-sonar-argocd-helm-k8s/spring-boot-app') {
+                    // Package the application
+                    sh 'mvn clean package -DskipTests'
                 }
             }
         }
     }
-
+    
     post {
         always {
-            archiveArtifacts artifacts: '**/*.log', allowEmptyArchive: true // Archive logs
+            // Archive artifacts
+            archiveArtifacts artifacts: '**/target/*.jar, **/*.log', 
+                           allowEmptyArchive: true
+            
+            // Clean workspace
+            cleanWs()
         }
         success {
             echo 'Build succeeded!'
-            // Add email or Slack notification here if needed
+            // Add notifications here
         }
         failure {
             echo 'Build failed!'
-            // Add email or Slack notification here if needed
+            // Add failure notifications here
         }
     }
 }
