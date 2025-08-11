@@ -11,9 +11,12 @@ pipeline {
         stage('Build Project') {
             steps {
                 dir('java-maven-sonar-argocd-helm-k8s/spring-boot-app') {
-                    // Files are in the src/ directory
+                    // Make scripts executable
                     sh 'chmod +x src/build.sh'
-                    sh './src/build.sh'
+                    
+                    // Run script from current directory (where pom.xml is)
+                    // but call the script from src/
+                    sh 'bash src/build.sh'
                 }
             }
         }
@@ -21,9 +24,11 @@ pipeline {
         stage('Run Tests') {
             steps {
                 dir('java-maven-sonar-argocd-helm-k8s/spring-boot-app') {
-                    // Files are in the src/ directory
+                    // Make scripts executable
                     sh 'chmod +x src/test.sh'
-                    sh './src/test.sh'
+                    
+                    // Run script from current directory (where pom.xml is)
+                    sh 'bash src/test.sh'
                 }
             }
         }
