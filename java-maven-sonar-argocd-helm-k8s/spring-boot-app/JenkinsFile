@@ -15,14 +15,17 @@ pipeline {
                     sh 'ls -la'
                     sh 'echo "Checking if pom.xml exists:"'
                     sh 'ls -la pom.xml'
+                    sh 'echo "Checking build and test scripts in src/main:"'
+                    sh 'ls -la src/main/*.sh'
                 }
             }
         }
         
-        stage('Build Project') {
+        stage('Build and Package') {
             steps {
                 dir('java-maven-sonar-argocd-helm-k8s/spring-boot-app') {
-                    sh 'mvn clean compile'
+                    sh 'chmod +x src/main/build.sh'
+                    sh './src/main/build.sh'
                 }
             }
         }
@@ -30,15 +33,8 @@ pipeline {
         stage('Run Tests') {
             steps {
                 dir('java-maven-sonar-argocd-helm-k8s/spring-boot-app') {
-                    sh 'mvn test'
-                }
-            }
-        }
-        
-        stage('Package Application') {
-            steps {
-                dir('java-maven-sonar-argocd-helm-k8s/spring-boot-app') {
-                    sh 'mvn clean package -DskipTests'
+                    sh 'chmod +x src/main/test.sh'
+                    sh './src/main/test.sh'
                 }
             }
         }
