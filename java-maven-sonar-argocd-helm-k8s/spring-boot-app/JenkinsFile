@@ -8,40 +8,26 @@ pipeline {
             }
         }
         
-        stage('Debug - List Files') {
+        stage('Install Maven') {
             steps {
-                // List all files in workspace
-                sh 'ls -la'
-                
-                // List files in the project directory
-                sh 'ls -la java-maven-sonar-argocd-helm-k8s/'
-                
-                // List files in spring-boot-app directory
-                sh 'ls -la java-maven-sonar-argocd-helm-k8s/spring-boot-app/'
-                
-                // Check if build.sh exists and its permissions
-                sh 'find . -name "build.sh" -type f'
-                sh 'find . -name "test.sh" -type f'
+                sh '''
+                    # Check if maven is already installed
+                    if ! command -v mvn &> /dev/null; then
+                        echo "Installing Maven..."
+                        sudo apt-get update -y
+                        sudo apt-get install maven -y
+                    else
+                        echo "Maven is already installed"
+                    fi
+                    mvn -version
+                '''
             }
         }
         
         stage('Build Project') {
             steps {
                 dir('java-maven-sonar-argocd-helm-k8s/spring-boot-app') {
-                    // Check current directory
-                    sh 'pwd'
-                    sh 'ls -la'
-                    
-                    // Try to make executable and run
-                    script {
-                        if (fileExists('build.sh')) {
-                            sh 'chmod +x build.sh'
-                            sh './build.sh'
-                        } else {
-                            echo 'build.sh not found, using Maven directly'
-                            sh 'mvn clean compile'
-                        }
-                    }
+                    sh 'mvn clean compile'
                 }
             }
         }
@@ -49,15 +35,15 @@ pipeline {
         stage('Run Tests') {
             steps {
                 dir('java-maven-sonar-argocd-helm-k8s/spring-boot-app') {
-                    script {
-                        if (fileExists('test.sh')) {
-                            sh 'chmod +x test.sh'
-                            sh './test.sh'
-                        } else {
-                            echo 'test.sh not found, using Maven directly'
-                            sh 'mvn test'
-                        }
-                    }
+                    sh 'mvn test'
+                }
+            }
+        }
+        
+        stage('Package Application') {
+            steps {
+                dir('java-maven-sonar-argocd-helm-k8s/spring-boot-app') {
+                    sh 'mvn clean package -DskipTests'
                 }
             }
         }
@@ -65,7 +51,7 @@ pipeline {
     
     post {
         always {
-            archiveArtifacts artifacts: '**/*.log', allowEmptyArchive: true
+            archiveArtifacts artifacts: '**/target/*.jar, **/*.log', allowEmptyArchive: true
         }
         success {
             echo 'Build succeeded!'
