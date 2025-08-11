@@ -1,11 +1,6 @@
 pipeline {
     agent any
     
-    tools {
-        maven 'Maven-3.9.0' // Make sure this matches your Jenkins Maven configuration
-        jdk 'JDK-17' // Make sure this matches your Jenkins JDK configuration
-    }
-    
     stages {
         stage('Checkout Code') {
             steps {
@@ -18,12 +13,9 @@ pipeline {
         stage('Build Project') {
             steps {
                 dir('java-maven-sonar-argocd-helm-k8s/spring-boot-app') {
-                    // Make scripts executable (if using shell scripts)
+                    // Make scripts executable
                     sh 'chmod +x build.sh'
                     sh './build.sh'
-                    
-                    // Alternative: Use Maven directly
-                    // sh 'mvn clean compile'
                 }
             }
         }
@@ -31,21 +23,9 @@ pipeline {
         stage('Run Tests') {
             steps {
                 dir('java-maven-sonar-argocd-helm-k8s/spring-boot-app') {
-                    // Make scripts executable (if using shell scripts)
+                    // Make scripts executable
                     sh 'chmod +x test.sh'
                     sh './test.sh'
-                    
-                    // Alternative: Use Maven directly
-                    // sh 'mvn test'
-                }
-            }
-        }
-        
-        stage('Package Application') {
-            steps {
-                dir('java-maven-sonar-argocd-helm-k8s/spring-boot-app') {
-                    // Package the application
-                    sh 'mvn clean package -DskipTests'
                 }
             }
         }
@@ -53,20 +33,13 @@ pipeline {
     
     post {
         always {
-            // Archive artifacts
-            archiveArtifacts artifacts: '**/target/*.jar, **/*.log', 
-                           allowEmptyArchive: true
-            
-            // Clean workspace
-            cleanWs()
+            archiveArtifacts artifacts: '**/*.log', allowEmptyArchive: true
         }
         success {
             echo 'Build succeeded!'
-            // Add notifications here
         }
         failure {
             echo 'Build failed!'
-            // Add failure notifications here
         }
     }
 }
